@@ -23,7 +23,7 @@ int main()
 {
 	int n_initial_sites = 10000;
 	int n_timesteps = 1000;
-	int output_interval = 10;
+	int output_interval = 1;
 
 	// initial condition
 	std::cout << "CREATING VORONOI DIAGRAM\n";
@@ -51,7 +51,6 @@ int main()
 }
 
 // To do:
-// winding number calculation
 // T1 transition
 // cell extrusion
 // cell division

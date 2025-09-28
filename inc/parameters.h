@@ -11,8 +11,8 @@ namespace parameter
 	const double A_0 = 0.6;
 	const double K_a = 0.5;
 	
-	const double l_min = 0.005*std::sqrt(A_0);
-	const double l_new = 0.01*std::sqrt(A_0);
+	const double l_min = 0.025*std::sqrt(A_0);
+	const double l_new = 0.05*std::sqrt(A_0);
 	const double A_min = 0.5*A_0;
 	const double A_max = 2.0*A_0;
 	

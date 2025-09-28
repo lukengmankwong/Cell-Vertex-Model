@@ -27,6 +27,9 @@ private:
 	std::vector<Cell*> cell_defects_P_HALF_;
 	std::vector<Cell*> cell_defects_N_HALF_;
 
+	void VertexTranslation();
+	void T1Transitions();
+
 public:
 
 	Tissue(const VD& voronoi_diagram, bool (*in)(double, double));
