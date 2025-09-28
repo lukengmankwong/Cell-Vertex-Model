@@ -15,11 +15,13 @@ void Vertex::addIncidentEdge(Halfedge* edge)
 {
 	incident_edges_.insert(edge);
 }
+
 void Vertex::removeIncidentEdge(Halfedge* edge)
 {
 	incident_edges_.erase(edge);
 	if (incident_edges_.empty()) selfDestroy();
 }
+
 void Vertex::selfDestroy()
 {
 	T_->deleteVertex(this);
@@ -30,6 +32,7 @@ void Vertex::translate(double dx, double dy)
 	x_ += dx;
 	y_ += dy;
 }
+
 void Vertex::updateForce()
 {
 	// line force
@@ -77,6 +80,7 @@ void Vertex::updateForce()
 	f_x_ += (f_L_x + f_A_x);
 	f_y_ += (f_L_y + f_A_y);
 }
+
 void Vertex::applyForce()
 {
 	double dx = parameter::a * f_x_ * parameter::dt;
@@ -84,9 +88,9 @@ void Vertex::applyForce()
 	translate(dx, dy);
 }
 
-int Vertex::id() 		const { return id_; }
-double Vertex::x() 		const { return x_; }
-double Vertex::y() 		const { return y_; }
-double Vertex::winding() 	const { return winding_; }
+int Vertex::id() const { return id_; }
+double Vertex::x() const { return x_; }
+double Vertex::y() const { return y_; }
+double Vertex::winding() const { return winding_; }
 
 const std::unordered_set<Halfedge*>& Vertex::incident_edges() const { return incident_edges_; }

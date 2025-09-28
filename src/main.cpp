@@ -18,7 +18,6 @@ std::vector<Point> randomPoints(int n)
 bool circle(double x, double y) { return x*x + y*y < 1000; }
 bool annulus(double x, double y) { return x*x + y*y < 1000 && x*x + y*y > 100; }
 
-
 int main()
 {
 	int n_initial_sites = 10000;
@@ -51,6 +50,5 @@ int main()
 }
 
 // To do:
-// T1 transition
 // cell extrusion
 // cell division

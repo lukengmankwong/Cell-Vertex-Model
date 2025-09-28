@@ -115,17 +115,16 @@ private:
 	Tissue* T_;
 	Halfedge* root_;
 	std::vector<Vertex*> vertices_;
-	std::vector<Halfedge*> edges_;
-
+	std::vector<Halfedge*> halfedges_;
 
 public:
 
 	Cell(Tissue* T, int id, Halfedge* root);
 
 	void selfDestroy();
-	void changeRoot(Halfedge* root);
+	void setRoot(Halfedge* root);
 
-	void findVerticesAndEdges();
+	void findVerticesAndHalfedges();
 	void boundaryCheck();
 	
 	void calcArea();

@@ -41,7 +41,7 @@ public:
 	void deleteHalfedge(Halfedge* he);
 	void deleteCell(Cell* c);
 
-	double deltaTheta(Cell* c_1, Cell* c_2);
+	double dTheta(Cell* c_1, Cell* c_2);
 	
 	void runTimestep();
 	void findDefects();

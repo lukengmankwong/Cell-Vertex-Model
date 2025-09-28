@@ -78,10 +78,8 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 			v->addIncidentEdge(halfedge_map[VD::Halfedge_handle(he_it)]);
 		}
 	}
-
 	// process custom half edge data structure.
-	for (Cell* c : cells_) c->findVerticesAndEdges();
-	
+	for (Cell* c : cells_) c->findVerticesAndHalfedges();
 	for (Halfedge* he : halfedges_) he->calcLength();
 	for (Cell* c : cells_)
 	{
@@ -90,14 +88,13 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 		c->calcPerimeter();
 		c->boundaryCheck();
 	}
-
+	// remove cells to meet initial condition
 	std::vector<Cell*> invalid_cells;
 	for (Cell* c : cells_) if (! in(c->centroid_x(), c->centroid_y())) invalid_cells.push_back(c);
 	for (Cell* c : invalid_cells) c->selfDestroy();
-	for (Cell* c : cells_) c->findVerticesAndEdges();
+	for (Cell* c : cells_) c->findVerticesAndHalfedges();
 	writeCellFile("cells0.vtk");
 	writeDirectorFile("directors0.vtk");
-	
 	// sanity check : Euler characteristic should equal 1
 	int V = vertices_.size();
 	int HE = halfedges_.size(); int E = HE/2;
@@ -107,7 +104,6 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	std::cout << "V-E+F=" << Euler << '\n';
 }
 
-
 Vertex* Tissue::createVertex(double x, double y)
 {
 	Vertex* v = new Vertex(this, vertex_counter_, x, y);
@@ -115,6 +111,7 @@ Vertex* Tissue::createVertex(double x, double y)
 	vertex_counter_++;
 	return v;
 }
+
 Halfedge* Tissue::createHalfedge()
 {
 	Halfedge* he = new Halfedge(this, halfedge_counter_);
@@ -122,6 +119,7 @@ Halfedge* Tissue::createHalfedge()
 	halfedge_counter_++;
 	return he;
 }
+
 Cell* Tissue::createCell(Halfedge* root)
 {
 	Cell* c = new Cell(this, cell_counter_, root);
@@ -135,18 +133,20 @@ void Tissue::deleteVertex(Vertex* v)
 	vertices_.erase(std::find(vertices_.begin(), vertices_.end(), v));
 	delete v;
 }
+
 void Tissue::deleteHalfedge(Halfedge* he)
 {
 	halfedges_.erase(std::find(halfedges_.begin(), halfedges_.end(), he));
 	delete he;
 }
+
 void Tissue::deleteCell(Cell* c)
 {
 	cells_.erase(std::find(cells_.begin(), cells_.end(), c));
 	delete c;
 }
 
-double Tissue::deltaTheta(Cell* c_1, Cell* c_2)
+double Tissue::dTheta(Cell* c_1, Cell* c_2)
 {
 	double Z_1 = c_1->Z(); double X_1 = c_1->X(); double S_1 = std::sqrt(X_1*X_1+Z_1*Z_1);
 	double Z_2 = c_2->Z(); double X_2 = c_2->X(); double S_2 = std::sqrt(X_2*X_2+Z_2*Z_2);
@@ -227,6 +227,7 @@ void Tissue::writeCellFile(std::string filename)
 
 	file.close();
 }
+
 void Tissue::writeDirectorFile(std::string filename)
 {
 	std::ofstream file(filename);
@@ -241,6 +242,7 @@ void Tissue::writeDirectorFile(std::string filename)
 	for (int i = 0; i < n; i++) { file << "2 " << 2*i << " " << 2*i+1 << "\n"; }
 	file.close();
 }
+
 void Tissue::writeCellDefectFile(std::string filename)
 {
 

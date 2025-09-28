@@ -29,43 +29,26 @@ void Halfedge::setPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfe
 	cell_ = cell;
 }
 
-void Halfedge::setSource(Vertex* source)
-{
-	source_ = source;
-}
-void Halfedge::setTarget(Vertex* target)
-{
-	target_ = target;
-}
-void Halfedge::setNext(Halfedge* next)
-{
-	next_ = next;
-}
-void Halfedge::setPrev(Halfedge* prev)
-{
-	prev_ = prev;
-}
-void Halfedge::setCell(Cell* cell)
-{
-	cell_ = cell;
-}
-
-void Halfedge::removeCell()
-{
-	cell_ = nullptr;
-}
+void Halfedge::setSource(Vertex* source) { source_ = source; }
+void Halfedge::setTarget(Vertex* target) { target_ = target; }
+void Halfedge::setNext(Halfedge* next) { next_ = next; }
+void Halfedge::setPrev(Halfedge* prev) { prev_ = prev; }
+void Halfedge::setCell(Cell* cell) { cell_ = cell; }
+void Halfedge::removeCell() { cell_ = nullptr; }
 
 void Halfedge::twinDestroy()
 {
 	twin_->target()->removeIncidentEdge(twin_);
 	T_->deleteHalfedge(twin_);
 }
+
 void Halfedge::selfDestroy()
 {
 	twinDestroy();
 	target_->removeIncidentEdge(this);
 	T_->deleteHalfedge(this);
 }
+
 void Halfedge::t1Transition()
 {
 	calcLength();
@@ -99,8 +82,8 @@ void Halfedge::t1Transition()
 	v_b->addIncidentEdge(twin_->prev());
 
 	// ensure cell roots are not edges in the transition
-	c_1->changeRoot(next_);
-	c_2->changeRoot(twin_->next());
+	c_1->setRoot(next_);
+	c_2->setRoot(twin_->next());
 
 	// update c_1 halfedges
 	prev_->setNext(next_);
@@ -128,10 +111,10 @@ void Halfedge::t1Transition()
 	setPrev(he_b_1);
 	setCell(c_b);
 
-	c_1->findVerticesAndEdges();
-	c_2->findVerticesAndEdges();
-	c_a->findVerticesAndEdges();
-	c_b->findVerticesAndEdges();
+	c_1->findVerticesAndHalfedges();
+	c_2->findVerticesAndHalfedges();
+	c_a->findVerticesAndHalfedges();
+	c_b->findVerticesAndHalfedges();
 }
 
 void Halfedge::calcLength()
@@ -143,6 +126,7 @@ void Halfedge::calcLength()
 
 	length_ = d(x1,y1, x2,y2);
 }
+
 void Halfedge::calcLineTension()
 {
 	if (cell_ && twin_->cell()) line_tension_ = parameter::Lambda + parameter::Gamma*(cell_->perimeter() + twin_->cell()->perimeter());
