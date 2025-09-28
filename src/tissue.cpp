@@ -1,9 +1,11 @@
 #include "cellstructure.h"
 #include "tissue.h"
 #include "diagram.h"
+#include "parameters.h"
 #include "maths.h"
 
 #include <vector>
+#include <unordered_set>
 #include <map>
 #include <string>
 #include <iostream>
@@ -12,7 +14,6 @@
 Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 {
 	// map CGAL halfedge data structure into custom half edge data structure
-
 	vertex_counter_ = 0;
 	halfedge_counter_ = 0;
 	cell_counter_ = 0;
@@ -31,7 +32,6 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 			halfedge_map[he_h] = he;
 		}
 	}
-
 	// create cells with their root halfedges
 	for (VD::Face_iterator f_it = voronoi_diagram.faces_begin(); f_it != voronoi_diagram.faces_end(); f_it++)
 	{
@@ -82,8 +82,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 
 
 	// process custom half edge data structure.
-	for (Cell* c : cells_) c->FindVertices();
-	for (Cell* c : cells_) c->CountEdges();
+	for (Cell* c : cells_) c->FindVerticesAndEdges();
 	
 	for (Halfedge* he : halfedges_) he->CalcLength();
 	for (Cell* c : cells_)
@@ -92,7 +91,6 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 		c->CalcCentroid();
 		c->CalcPerimeter();
 		c->BoundaryCheck();
-		c->FindVertices();
 	}
 
 	/*for (Cell* c : cells_) c->Output();
@@ -107,6 +105,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	std::vector<Cell*> invalid_cells;
 	for (Cell* c : cells_) if (! in(c->centroid_x(), c->centroid_y())) invalid_cells.push_back(c);
 	for (Cell* c : invalid_cells) c->SelfDestroy();
+	for (Cell* c : cells_) c->FindVerticesAndEdges();
 	WriteCellFile("cells0.vtk");
 	
 	// sanity check : Euler characteristic should equal 1
@@ -116,7 +115,6 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	int Euler = V - E + F;
 	std::cout << "V=" << V << "\tE=" << E << "\tF=" << F << '\n';
 	std::cout << "V-E+F=" << Euler << '\n';
-
 }
 
 
@@ -174,6 +172,7 @@ void Tissue::FindDefects()
 	cell_defects_P_HALF_ = {};
 	cell_defects_N_HALF_ = {};
 
+	for (Cell* c : cells_) c->CalcGyration();
 	for (Cell* c : cells_)
 	{
 		c->CalcWinding();
@@ -185,17 +184,33 @@ void Tissue::FindDefects()
 	}
 }
 
-void Tissue::RunTimestep()
+void Tissue::VertexTranslation()
 {
 	for (Halfedge* he : halfedges_) he->CalcLength();
 	for (Cell* c : cells_) 			c->CalcPerimeter();
 	for (Halfedge* he : halfedges_) he->CalcLineTension();
 	for (Cell* c : cells_) 			c->CalcSurfaceTension();
-
 	for (Vertex* v : vertices_) 	v->UpdateForce();
 	for (Vertex* v : vertices_) 	v->ApplyForce();
+}
 
-	for (Cell* c : cells_)			c->CalcGyration();
+void Tissue::T1Transitions()
+{
+	std::unordered_set<Halfedge*> short_halfedges;
+	std::unordered_set<Cell*> cells_of_short_halfedges;
+	for (Halfedge* he : halfedges_) he->CalcLength();
+	for (Halfedge* he : halfedges_) if (he->length() < parameter::l_min && he->cell() && he->twin()->cell() && he->next()->twin()->cell() && he->prev()->twin()->cell())
+	{
+		short_halfedges.insert(he);
+		short_halfedges.erase(he->twin());
+	}
+	for (Halfedge* he : short_halfedges) he->T1Transition();
+}
+
+void Tissue::RunTimestep()
+{
+	VertexTranslation();
+	T1Transitions();
 	FindDefects();
 }
 

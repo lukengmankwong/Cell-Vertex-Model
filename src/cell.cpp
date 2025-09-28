@@ -14,44 +14,33 @@ Cell::Cell(Tissue* T, int id, Halfedge* root)
 // deletes half edges of cell, sets relevant half edges to have twin nullptrs
 void Cell::SelfDestroy()
 {
-	std::vector<Halfedge*> halfedges;
-	Halfedge* current = root_;
-	do {
-		halfedges.push_back(current);
-		current = current->next();
-	} while (current != root_);
-	
-	for (int i = 0; i < halfedges.size(); i++)
+	FindVerticesAndEdges();
+	for (int i = 0; i < n_edges_; i++)
 	{
-		if (halfedges[i]->twin()->cell() == nullptr) halfedges[i]->SelfDestroy();
-		else (halfedges[i]->RemoveCell());
+		if (edges_[i]->twin()->cell() == nullptr) edges_[i]->SelfDestroy();
+		else (edges_[i]->RemoveCell());
 	}
-	//for (int i = 0; i < halfedges.size(); i++) halfedges[i]->SelfDestroy();
 	T_->DeleteCell(this);
 }
 
-
-void Cell::CountEdges()
+void Cell::ChangeRoot(Halfedge* root)
 {
-	n_edges_ = 1;
-	Halfedge* current = root_->next();
-	while (current != root_)
-	{
-		current = current->next();
-		n_edges_++;
-	}
+	root_ = root;
 }
-void Cell::FindVertices()
-{
-	vertices_ = {root_->target()};
 
-	Halfedge* current = root_->next();
-	while (current != root_)
-	{
-		vertices_.push_back(current->target());
+
+void Cell::FindVerticesAndEdges()
+{
+	vertices_ = {};
+	edges_ = {};
+	Halfedge* current = root_;
+	do {
+		vertices_.push_back(current->source());
+		edges_.push_back(current);
 		current = current->next();
-	}
+	} while (current != root_);
 	n_vertices_ = vertices_.size();
+	n_edges_ = edges_.size();
 }
 
 void Cell::BoundaryCheck()
@@ -148,7 +137,6 @@ void Cell::CalcWinding()
 	do {
 		if (he_current->cell() && he_current->next()->cell()) winding_ += T_->DeltaTheta(he_current->cell(), he_current->next()->cell());
 		he_current = he_current->next();
-
 	} while(he_current != root_);
 }
 
@@ -163,6 +151,7 @@ int Cell::id() const { return id_; }
 int Cell::n_edges() const { return n_edges_; }
 int Cell::n_vertices() const { return n_vertices_; }
 const std::vector<Vertex*>& Cell::vertices() const { return vertices_; }
+Halfedge* Cell::root() const { return root_; }
 bool Cell::on_boundary() const { return on_boundary_; }
 
 double Cell::centroid_x() const { return centroid_x_; }

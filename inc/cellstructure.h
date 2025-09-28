@@ -31,6 +31,7 @@ public:
 	void RemoveIncidentEdge(Halfedge* edge);
 	void SelfDestroy();
 
+	void Translate(double dx, double dy);
 	void UpdateForce();
     void ApplyForce();
 
@@ -63,10 +64,16 @@ public:
 
 	Halfedge(Tissue* T, int id);
 
-	void SetPointers(Vertex* origin, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell);
+	void SetPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell);
+	void SetSource(Vertex* source);
+	void SetTarget(Vertex* target);
+	void SetNext(Halfedge* next);
+	void SetPrev(Halfedge* prev);
+	void SetCell(Cell* cell);
 	void RemoveCell();
 	void TwinDestroy();
 	void SelfDestroy();
+	void T1Transition();
 
 	void CalcLength();
 	void CalcLineTension();
@@ -113,12 +120,12 @@ private:
 
 public:
 
-	Cell(Tissue* T, int id, Halfedge* root_);
+	Cell(Tissue* T, int id, Halfedge* root);
 
 	void SelfDestroy();
+	void ChangeRoot(Halfedge* root);
 
-	void CountEdges();
-	void FindVertices();
+	void FindVerticesAndEdges();
 	void BoundaryCheck();
 	
 	void CalcArea();

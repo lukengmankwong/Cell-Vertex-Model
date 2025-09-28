@@ -25,6 +25,11 @@ void Vertex::SelfDestroy()
 	T_->DeleteVertex(this);
 }
 
+void Vertex::Translate(double dx, double dy)
+{
+	x_ += dx;
+	y_ += dy;
+}
 void Vertex::UpdateForce()
 {
 	// line force
@@ -74,8 +79,9 @@ void Vertex::UpdateForce()
 }
 void Vertex::ApplyForce()
 {
-	x_ += parameter::a * f_x_ * parameter::dt;
-	y_ += parameter::a * f_y_ * parameter::dt;
+	double dx = parameter::a * f_x_ * parameter::dt;
+	double dy = parameter::a * f_y_ * parameter::dt;
+	Translate(dx, dy);
 }
 
 int Vertex::id() 		const { return id_; }
