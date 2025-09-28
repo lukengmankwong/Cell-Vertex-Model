@@ -5,7 +5,6 @@
 
 namespace parameter
 {
-
 	const double dt = 1e-7;
 	const double a = 1;
 	const double A_0 = 0.6;
@@ -18,7 +17,6 @@ namespace parameter
 	
 	const double Lambda = 0.1;
 	const double Gamma = 0.5;
-
 };
 
 #endif // PARAMETERS_H

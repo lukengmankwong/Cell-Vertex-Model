@@ -17,7 +17,6 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	vertex_counter_ = 0;
 	halfedge_counter_ = 0;
 	cell_counter_ = 0;
-
 	std::map<VD::Vertex_handle, Vertex*> vertex_map;
 	std::map<VD::Halfedge_handle, Halfedge*> halfedge_map;
 	std::map<VD::Face_handle, Cell*> cell_map;
@@ -27,7 +26,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	{
 		if (!he_it->is_unbounded() && !he_it->is_ray())
 		{
-			Halfedge* he = CreateHalfedge();
+			Halfedge* he = createHalfedge();
 			VD::Halfedge_handle he_h = he_it;
 			halfedge_map[he_h] = he;
 		}
@@ -38,7 +37,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 		if (!f_it->is_unbounded() && f_it->is_valid())
 		{
 			VD::Halfedge_handle cell_root = f_it->halfedge();
-			Cell* c = CreateCell(halfedge_map[cell_root]);
+			Cell* c = createCell(halfedge_map[cell_root]);
 			VD::Face_handle f_h = f_it;
 			cell_map[f_h] = c;
 		}
@@ -48,7 +47,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	{
 		if (v_it->is_valid())
 		{
-			Vertex* v = CreateVertex(v_it->point().x(), v_it->point().y());
+			Vertex* v = createVertex(v_it->point().x(), v_it->point().y());
 			VD::Vertex_handle v_h = v_it;
 			vertex_map[v_h] = v;
 		}
@@ -66,7 +65,7 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 			Cell* cell = cell_map[he_it->face()];
 
 			VD::Halfedge_handle he_h = he_it;
-			halfedge_map[he_h]->SetPointers(source, target, twin, next, prev, cell);
+			halfedge_map[he_h]->setPointers(source, target, twin, next, prev, cell);
 		}
 	}
 	// assign pointers for vertices
@@ -76,38 +75,26 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 		{
 			VD::Vertex_handle v_h = he_it->target();
 			Vertex* v = vertex_map[v_h];
-			v->AddIncidentEdge(halfedge_map[VD::Halfedge_handle(he_it)]);
+			v->addIncidentEdge(halfedge_map[VD::Halfedge_handle(he_it)]);
 		}
 	}
-
-
 	// process custom half edge data structure.
-	for (Cell* c : cells_) c->FindVerticesAndEdges();
-	
-	for (Halfedge* he : halfedges_) he->CalcLength();
+	for (Cell* c : cells_) c->findVerticesAndHalfedges();
+	for (Halfedge* he : halfedges_) he->calcLength();
 	for (Cell* c : cells_)
 	{
-		c->CalcArea();
-		c->CalcCentroid();
-		c->CalcPerimeter();
-		c->BoundaryCheck();
+		c->calcArea();
+		c->calcCentroid();
+		c->calcPerimeter();
+		c->boundaryCheck();
 	}
-
-	/*for (Cell* c : cells_) c->Output();
-	for (Vertex* v : vertices_) 
-	{
-		std::cout << v->id() << ": ";
-		//for (auto c : v->cell_contacts()) std::cout << c->id() << ' ';
-		for (Halfedge* he : v->incident_edges()) if (he->cell()) std::cout << he->cell()->id() << ' '; else std::cout << "00000" << ' ';
-		std::cout << '\n';
-	}*/
-
+	// remove cells to meet initial condition
 	std::vector<Cell*> invalid_cells;
 	for (Cell* c : cells_) if (! in(c->centroid_x(), c->centroid_y())) invalid_cells.push_back(c);
-	for (Cell* c : invalid_cells) c->SelfDestroy();
-	for (Cell* c : cells_) c->FindVerticesAndEdges();
-	WriteCellFile("cells0.vtk");
-	
+	for (Cell* c : invalid_cells) c->selfDestroy();
+	for (Cell* c : cells_) c->findVerticesAndHalfedges();
+	writeCellFile("cells0.vtk");
+	writeDirectorFile("directors0.vtk");
 	// sanity check : Euler characteristic should equal 1
 	int V = vertices_.size();
 	int HE = halfedges_.size(); int E = HE/2;
@@ -117,22 +104,23 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	std::cout << "V-E+F=" << Euler << '\n';
 }
 
-
-Vertex* Tissue::CreateVertex(double x, double y)
+Vertex* Tissue::createVertex(double x, double y)
 {
 	Vertex* v = new Vertex(this, vertex_counter_, x, y);
 	vertices_.push_back(v);
 	vertex_counter_++;
 	return v;
 }
-Halfedge* Tissue::CreateHalfedge()
+
+Halfedge* Tissue::createHalfedge()
 {
 	Halfedge* he = new Halfedge(this, halfedge_counter_);
 	halfedges_.push_back(he);
 	halfedge_counter_++;
 	return he;
 }
-Cell* Tissue::CreateCell(Halfedge* root)
+
+Cell* Tissue::createCell(Halfedge* root)
 {
 	Cell* c = new Cell(this, cell_counter_, root);
 	cells_.push_back(c);
@@ -140,30 +128,55 @@ Cell* Tissue::CreateCell(Halfedge* root)
 	return c;
 }
 
-void Tissue::DeleteVertex(Vertex* v)
+void Tissue::deleteVertex(Vertex* v)
 {
 	vertices_.erase(std::find(vertices_.begin(), vertices_.end(), v));
 	delete v;
 }
-void Tissue::DeleteHalfedge(Halfedge* he)
+
+void Tissue::deleteHalfedge(Halfedge* he)
 {
 	halfedges_.erase(std::find(halfedges_.begin(), halfedges_.end(), he));
 	delete he;
 }
-void Tissue::DeleteCell(Cell* c)
+
+void Tissue::deleteCell(Cell* c)
 {
 	cells_.erase(std::find(cells_.begin(), cells_.end(), c));
 	delete c;
 }
 
-double Tissue::DeltaTheta(Cell* c_1, Cell* c_2)
+double Tissue::dTheta(Cell* c_1, Cell* c_2)
 {
 	double Z_1 = c_1->Z(); double X_1 = c_1->X(); double S_1 = std::sqrt(X_1*X_1+Z_1*Z_1);
 	double Z_2 = c_2->Z(); double X_2 = c_2->X(); double S_2 = std::sqrt(X_2*X_2+Z_2*Z_2);
 	return std::asin( (Z_1*X_2-X_1*Z_2) / (S_1*S_2) );
 }
 
-void Tissue::FindDefects()
+void Tissue::vertexTranslation()
+{
+	for (Halfedge* he : halfedges_) he->calcLength();
+	for (Cell* c : cells_) 			c->calcPerimeter();
+	for (Halfedge* he : halfedges_) he->calcLineTension();
+	for (Cell* c : cells_) 			c->calcSurfaceTension();
+	for (Vertex* v : vertices_) 	v->updateForce();
+	for (Vertex* v : vertices_) 	v->applyForce();
+}
+
+void Tissue::t1Transitions()
+{
+	std::unordered_set<Halfedge*> short_halfedges;
+	std::unordered_set<Cell*> cells_of_short_halfedges;
+	for (Halfedge* he : halfedges_) he->calcLength();
+	for (Halfedge* he : halfedges_) if (he->length() < parameter::l_min && he->cell() && he->twin()->cell() && he->next()->twin()->cell() && he->prev()->twin()->cell())
+	{
+		short_halfedges.insert(he);
+		short_halfedges.erase(he->twin());
+	}
+	for (Halfedge* he : short_halfedges) he->t1Transition();
+}
+
+void Tissue::findDefects()
 {
 	double tol = 1e-3;
 
@@ -172,10 +185,10 @@ void Tissue::FindDefects()
 	cell_defects_P_HALF_ = {};
 	cell_defects_N_HALF_ = {};
 
-	for (Cell* c : cells_) c->CalcGyration();
+	for (Cell* c : cells_) c->calcGyration();
 	for (Cell* c : cells_)
 	{
-		c->CalcWinding();
+		c->calcWinding();
 		double winding = c->winding();
 		if (std::fabs(winding - 1) < tol) cell_defects_P_ONE_.push_back(c); 
 		else if (std::fabs(winding + 1) < tol) cell_defects_N_ONE_.push_back(c); 
@@ -184,37 +197,14 @@ void Tissue::FindDefects()
 	}
 }
 
-void Tissue::VertexTranslation()
+void Tissue::runTimestep()
 {
-	for (Halfedge* he : halfedges_) he->CalcLength();
-	for (Cell* c : cells_) 			c->CalcPerimeter();
-	for (Halfedge* he : halfedges_) he->CalcLineTension();
-	for (Cell* c : cells_) 			c->CalcSurfaceTension();
-	for (Vertex* v : vertices_) 	v->UpdateForce();
-	for (Vertex* v : vertices_) 	v->ApplyForce();
+	vertexTranslation();
+	t1Transitions();
+	findDefects();
 }
 
-void Tissue::T1Transitions()
-{
-	std::unordered_set<Halfedge*> short_halfedges;
-	std::unordered_set<Cell*> cells_of_short_halfedges;
-	for (Halfedge* he : halfedges_) he->CalcLength();
-	for (Halfedge* he : halfedges_) if (he->length() < parameter::l_min && he->cell() && he->twin()->cell() && he->next()->twin()->cell() && he->prev()->twin()->cell())
-	{
-		short_halfedges.insert(he);
-		short_halfedges.erase(he->twin());
-	}
-	for (Halfedge* he : short_halfedges) he->T1Transition();
-}
-
-void Tissue::RunTimestep()
-{
-	VertexTranslation();
-	T1Transitions();
-	FindDefects();
-}
-
-void Tissue::WriteCellFile(std::string filename)
+void Tissue::writeCellFile(std::string filename)
 {
 	std::ofstream file(filename);
     file << "# vtk DataFile Version 2.0\nGraph\nASCII\nDATASET UNSTRUCTURED_GRID\nPOINTS " << vertices_.size() << " float\n";
@@ -237,7 +227,8 @@ void Tissue::WriteCellFile(std::string filename)
 
 	file.close();
 }
-void Tissue::WriteDirectorFile(std::string filename)
+
+void Tissue::writeDirectorFile(std::string filename)
 {
 	std::ofstream file(filename);
 	int n = cells_.size();
@@ -251,7 +242,8 @@ void Tissue::WriteDirectorFile(std::string filename)
 	for (int i = 0; i < n; i++) { file << "2 " << 2*i << " " << 2*i+1 << "\n"; }
 	file.close();
 }
-void Tissue::WriteCellDefectFile(std::string filename)
+
+void Tissue::writeCellDefectFile(std::string filename)
 {
 
 }

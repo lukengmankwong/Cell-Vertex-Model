@@ -27,27 +27,27 @@ private:
 	std::vector<Cell*> cell_defects_P_HALF_;
 	std::vector<Cell*> cell_defects_N_HALF_;
 
-	void VertexTranslation();
-	void T1Transitions();
+	void vertexTranslation();
+	void t1Transitions();
 
 public:
 
 	Tissue(const VD& voronoi_diagram, bool (*in)(double, double));
 	
-	Vertex* CreateVertex(double x, double y);
-	Halfedge* CreateHalfedge();
-	Cell* CreateCell(Halfedge* root);
-	void DeleteVertex(Vertex* v);
-	void DeleteHalfedge(Halfedge* he);
-	void DeleteCell(Cell* c);
+	Vertex* createVertex(double x, double y);
+	Halfedge* createHalfedge();
+	Cell* createCell(Halfedge* root);
+	void deleteVertex(Vertex* v);
+	void deleteHalfedge(Halfedge* he);
+	void deleteCell(Cell* c);
 
-	double DeltaTheta(Cell* c_1, Cell* c_2);
+	double dTheta(Cell* c_1, Cell* c_2);
 	
-	void RunTimestep();
-	void FindDefects();
-	void WriteCellFile(std::string filename);
-	void WriteDirectorFile(std::string filename);
-	void WriteCellDefectFile(std::string filename);
+	void runTimestep();
+	void findDefects();
+	void writeCellFile(std::string filename);
+	void writeDirectorFile(std::string filename);
+	void writeCellDefectFile(std::string filename);
 
 	const std::vector<Vertex*>& vertices() const;
 	const std::vector<Halfedge*>& halfedges() const;

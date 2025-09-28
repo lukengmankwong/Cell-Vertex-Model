@@ -30,9 +30,9 @@ public:
 
     Diagram(std::vector<Point> points); 
 
-    void CreateVoronoiDiagram();
+    void createVoronoiDiagram();
     
-    const VD& VoronoiDiagram() const;
+    const VD& voronoi_diagram() const;
 
 };
 
