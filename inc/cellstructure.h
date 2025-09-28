@@ -96,7 +96,6 @@ class Cell
 private:
 
 	int id_;
-	int n_edges_;
 	int n_vertices_;
 	bool on_boundary_;
 
@@ -136,7 +135,6 @@ public:
 	void calcWinding();
 
 	int id() const;	
-	int n_edges() const;
 	int n_vertices() const;
 	const std::vector<Vertex*>& vertices() const;
 	Halfedge* root() const;

@@ -115,6 +115,10 @@ void Halfedge::t1Transition()
 	c_2->findVerticesAndHalfedges();
 	c_a->findVerticesAndHalfedges();
 	c_b->findVerticesAndHalfedges();
+	c_1->boundaryCheck();
+	c_2->boundaryCheck();
+	c_a->boundaryCheck();
+	c_b->boundaryCheck();
 }
 
 void Halfedge::calcLength()

@@ -15,7 +15,7 @@ Cell::Cell(Tissue* T, int id, Halfedge* root)
 void Cell::selfDestroy()
 {
 	findVerticesAndHalfedges();
-	for (int i = 0; i < n_edges_; i++)
+	for (int i = 0; i < halfedges_.size(); i++)
 	{
 		if (halfedges_[i]->twin()->cell() == nullptr) halfedges_[i]->selfDestroy();
 		else (halfedges_[i]->removeCell());
@@ -36,34 +36,33 @@ void Cell::findVerticesAndHalfedges()
 		current = current->next();
 	} while (current != root_);
 	n_vertices_ = vertices_.size();
-	n_edges_ = halfedges_.size();
 }
 
 void Cell::boundaryCheck()
 {
-	Halfedge* current = root_;
 	on_boundary_ = false;
-	do {
-		if (current->twin()->cell() == nullptr) on_boundary_ = true;
-		current = current->next();
-	} while (current != root_ && !on_boundary_);
+	for (Halfedge* he : halfedges_)
+	{
+		if (he->twin()->cell() == nullptr) 
+		{
+			on_boundary_ = true;
+			break;
+		}
+	}
 }
 
 void Cell::calcArea()
 {
 	signed_area_ = 0;
-	Halfedge* current = root_;
-	// shoelace formula
-	do {
-		double x1 = current->source()->x();
-		double y1 = current->source()->y();
-		double x2 = current->target()->x();
-		double y2 = current->target()->y();
-		current = current->next();
+	for (Halfedge* he : halfedges_)
+	{
+		double x1 = he->source()->x();
+		double y1 = he->source()->y();
+		double x2 = he->target()->x();
+		double y2 = he->target()->y();
 		
 		signed_area_+= (x1*y2-x2*y1);
-		
-	} while (current != root_);
+	}
 	signed_area_ *= 0.5;
 	area_ = std::abs(signed_area_);
 }
@@ -72,19 +71,17 @@ void Cell::calcCentroid()
 {
 	centroid_x_ = 0;
 	centroid_y_ = 0;
-	Halfedge* current = root_;
 	// shoelace formula taken further to get centroid
-	do {
-		double x1 = current->source()->x();
-		double y1 = current->source()->y();
-		double x2 = current->target()->x();
-		double y2 = current->target()->y();
-		current = current->next();
+	for (Halfedge* he : halfedges_)
+	{
+		double x1 = he->source()->x();
+		double y1 = he->source()->y();
+		double x2 = he->target()->x();
+		double y2 = he->target()->y();
 		
 		centroid_x_ += (x1+x2)*(x1*y2-x2*y1);
 		centroid_y_ += (y1+y2)*(x1*y2-x2*y1);
-		
-	} while (current != root_);
+	}
 	centroid_x_ /= 6*signed_area_;
 	centroid_y_ /= 6*signed_area_;
 }
@@ -92,11 +89,7 @@ void Cell::calcCentroid()
 void Cell::calcPerimeter()
 {
 	perimeter_ = 0;
-	Halfedge* current = root_;
-	do {
-		perimeter_ += current->length();
-		current = current->next();
-	} while (current != root_);
+	for (Halfedge* he : halfedges_) perimeter_ += he->length();
 }
 
 void Cell::calcSurfaceTension()
@@ -107,48 +100,40 @@ void Cell::calcSurfaceTension()
 
 void Cell::calcGyration()
 {
-	G_[0] = 0; G_[1] = 0; G_[2] = 0;
 	calcCentroid();
-	Halfedge* he_current = root_;
-	do {
-		Vertex* v = he_current->target();
+	G_[0] = 0; G_[1] = 0; G_[2] = 0;
+	for (Halfedge* he : halfedges_)
+	{
+		Vertex* v = he->target();
 		double x_v = v->x(); double y_v = v->y();
 		G_[0]+=(x_v-centroid_x_)*(x_v-centroid_y_);	
 		G_[1]+=(x_v-centroid_x_)*(y_v-centroid_y_);
 		G_[2]+=(y_v-centroid_x_)*(y_v-centroid_y_);
-		he_current = he_current->next();
-
-	} while(he_current != root_);
-
+	}
 	G_[0] /= n_vertices_;
 	G_[1] /= n_vertices_;
 	G_[2] /= n_vertices_;
 
 	X_ = G_[1];
-	Z_ = (G_[0]-G_[2])/2;
-	lambda_ = 0.5*( G_[0]+G_[2] + std::sqrt( (G_[0]+G_[2])*(G_[0]+G_[2]) - 4*(G_[0]*G_[2]-G_[1]*G_[1]) ) );
+	Z_ = (G_[0]-G_[2]) / 2;
+	lambda_ = 0.5*( G_[0]+G_[2] + std::sqrt((G_[0]+G_[2])*(G_[0]+G_[2]) - 4*(G_[0]*G_[2]-G_[1]*G_[1])) );
 	n_x_ = 1; n_y_ = ((lambda_-G_[0])/G_[1]) / std::sqrt( 1 + ((lambda_-G_[0])/G_[1])*((lambda_-G_[0])/G_[1]));
 }
 
 void Cell::calcWinding()
 {
 	winding_ = 0;
-	Halfedge* he_current = root_;
-	do {
-		if (he_current->cell() && he_current->next()->cell()) winding_ += T_->dTheta(he_current->cell(), he_current->next()->cell());
-		he_current = he_current->next();
-	} while(he_current != root_);
+	if (!on_boundary_) for (Halfedge* he : halfedges_) winding_ += T_->dTheta(he->cell(), he->next()->cell());
 }
 
 void Cell::output()
 {
 	std::cout << "id: " << id_ << '\n';
 	std::cout << "Vertices: "; for (Vertex* v : vertices_) std::cout << v->id() << " "; std::cout <<'\n';
-	std::cout << "n_vertices: " << n_vertices_ << " n_edges: " << n_edges_ << "\n\n";
+	std::cout << "n_vertices: " << n_vertices_ << "\n\n";
 }
 
 int Cell::id() const { return id_; }
-int Cell::n_edges() const { return n_edges_; }
 int Cell::n_vertices() const { return n_vertices_; }
 const std::vector<Vertex*>& Cell::vertices() const { return vertices_; }
 Halfedge* Cell::root() const { return root_; }

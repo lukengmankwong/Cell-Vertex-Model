@@ -93,6 +93,8 @@ Tissue::Tissue(const VD& voronoi_diagram, bool (*in)(double, double))
 	for (Cell* c : cells_) if (! in(c->centroid_x(), c->centroid_y())) invalid_cells.push_back(c);
 	for (Cell* c : invalid_cells) c->selfDestroy();
 	for (Cell* c : cells_) c->findVerticesAndHalfedges();
+	for (Cell* c : cells_) c->boundaryCheck();
+
 	writeCellFile("cells0.vtk");
 	writeDirectorFile("directors0.vtk");
 	// sanity check : Euler characteristic should equal 1
@@ -158,7 +160,9 @@ void Tissue::vertexTranslation()
 	for (Halfedge* he : halfedges_) he->calcLength();
 	for (Cell* c : cells_) 			c->calcPerimeter();
 	for (Halfedge* he : halfedges_) he->calcLineTension();
+
 	for (Cell* c : cells_) 			c->calcSurfaceTension();
+
 	for (Vertex* v : vertices_) 	v->updateForce();
 	for (Vertex* v : vertices_) 	v->applyForce();
 }
