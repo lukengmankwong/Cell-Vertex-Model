@@ -12,24 +12,24 @@ Cell::Cell(Tissue* T, int id, Halfedge* root)
 }
 
 // deletes half edges of cell, sets relevant half edges to have twin nullptrs
-void Cell::SelfDestroy()
+void Cell::selfDestroy()
 {
-	FindVerticesAndEdges();
+	findVerticesAndEdges();
 	for (int i = 0; i < n_edges_; i++)
 	{
-		if (edges_[i]->twin()->cell() == nullptr) edges_[i]->SelfDestroy();
-		else (edges_[i]->RemoveCell());
+		if (edges_[i]->twin()->cell() == nullptr) edges_[i]->selfDestroy();
+		else (edges_[i]->removeCell());
 	}
-	T_->DeleteCell(this);
+	T_->deleteCell(this);
 }
 
-void Cell::ChangeRoot(Halfedge* root)
+void Cell::changeRoot(Halfedge* root)
 {
 	root_ = root;
 }
 
 
-void Cell::FindVerticesAndEdges()
+void Cell::findVerticesAndEdges()
 {
 	vertices_ = {};
 	edges_ = {};
@@ -43,7 +43,7 @@ void Cell::FindVerticesAndEdges()
 	n_edges_ = edges_.size();
 }
 
-void Cell::BoundaryCheck()
+void Cell::boundaryCheck()
 {
 	Halfedge* current = root_;
 	on_boundary_ = false;
@@ -54,7 +54,7 @@ void Cell::BoundaryCheck()
 }
 
 // shoelace formula
-void Cell::CalcArea()
+void Cell::calcArea()
 {
 	signed_area_ = 0;
 	Halfedge* current = root_;
@@ -72,7 +72,7 @@ void Cell::CalcArea()
 	area_ = std::abs(signed_area_);
 }
 // shoelace formula taken further to get centroid
-void Cell::CalcCentroid()
+void Cell::calcCentroid()
 {
 	centroid_x_ = 0;
 	centroid_y_ = 0;
@@ -91,7 +91,7 @@ void Cell::CalcCentroid()
 	centroid_x_ /= 6*signed_area_;
 	centroid_y_ /= 6*signed_area_;
 }
-void Cell::CalcPerimeter()
+void Cell::calcPerimeter()
 {
 	perimeter_ = 0;
 	Halfedge* current = root_;
@@ -100,16 +100,16 @@ void Cell::CalcPerimeter()
 		current = current->next();
 	} while (current != root_);
 }
-void Cell::CalcSurfaceTension()
+void Cell::calcSurfaceTension()
 {
-	CalcArea();
+	calcArea();
 	surface_tension_ = parameter::K_a*(area_-parameter::A_0);
 }
 
-void Cell::CalcGyration()
+void Cell::calcGyration()
 {
 	G_[0] = 0; G_[1] = 0; G_[2] = 0;
-	CalcCentroid();
+	calcCentroid();
 	Halfedge* he_current = root_;
 	do {
 		Vertex* v = he_current->target();
@@ -130,17 +130,17 @@ void Cell::CalcGyration()
 	lambda_ = 0.5*( G_[0]+G_[2] + std::sqrt( (G_[0]+G_[2])*(G_[0]+G_[2]) - 4*(G_[0]*G_[2]-G_[1]*G_[1]) ) );
 	n_x_ = 1; n_y_ = ((lambda_-G_[0])/G_[1]) / std::sqrt( 1 + ((lambda_-G_[0])/G_[1])*((lambda_-G_[0])/G_[1]));
 }
-void Cell::CalcWinding()
+void Cell::calcWinding()
 {
 	winding_ = 0;
 	Halfedge* he_current = root_;
 	do {
-		if (he_current->cell() && he_current->next()->cell()) winding_ += T_->DeltaTheta(he_current->cell(), he_current->next()->cell());
+		if (he_current->cell() && he_current->next()->cell()) winding_ += T_->deltaTheta(he_current->cell(), he_current->next()->cell());
 		he_current = he_current->next();
 	} while(he_current != root_);
 }
 
-void Cell::Output()
+void Cell::output()
 {
 	std::cout << "id: " << id_ << '\n';
 	std::cout << "Vertices: "; for (Vertex* v : vertices_) std::cout << v->id() << " "; std::cout <<'\n';

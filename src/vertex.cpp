@@ -11,26 +11,26 @@ Vertex::Vertex(Tissue* T, int id, double x, double y)
 	f_x_ = 0; f_y_ = 0;
 }
 
-void Vertex::AddIncidentEdge(Halfedge* edge)
+void Vertex::addIncidentEdge(Halfedge* edge)
 {
 	incident_edges_.insert(edge);
 }
-void Vertex::RemoveIncidentEdge(Halfedge* edge)
+void Vertex::removeIncidentEdge(Halfedge* edge)
 {
 	incident_edges_.erase(edge);
-	if (incident_edges_.empty()) SelfDestroy();
+	if (incident_edges_.empty()) selfDestroy();
 }
-void Vertex::SelfDestroy()
+void Vertex::selfDestroy()
 {
-	T_->DeleteVertex(this);
+	T_->deleteVertex(this);
 }
 
-void Vertex::Translate(double dx, double dy)
+void Vertex::translate(double dx, double dy)
 {
 	x_ += dx;
 	y_ += dy;
 }
-void Vertex::UpdateForce()
+void Vertex::updateForce()
 {
 	// line force
 	double f_L_x = 0; double f_L_y = 0;
@@ -77,11 +77,11 @@ void Vertex::UpdateForce()
 	f_x_ += (f_L_x + f_A_x);
 	f_y_ += (f_L_y + f_A_y);
 }
-void Vertex::ApplyForce()
+void Vertex::applyForce()
 {
 	double dx = parameter::a * f_x_ * parameter::dt;
 	double dy = parameter::a * f_y_ * parameter::dt;
-	Translate(dx, dy);
+	translate(dx, dy);
 }
 
 int Vertex::id() 		const { return id_; }

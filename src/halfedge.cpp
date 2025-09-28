@@ -17,7 +17,7 @@ Halfedge::Halfedge(Tissue* T, int id)//, int origin_id, int twin_id, int next_id
 	line_tension_ = 0;
 }
 
-void Halfedge::SetPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell)
+void Halfedge::setPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell)
 {
 	source_ = source;
 	target_ = target;
@@ -29,46 +29,46 @@ void Halfedge::SetPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfe
 	cell_ = cell;
 }
 
-void Halfedge::SetSource(Vertex* source)
+void Halfedge::setSource(Vertex* source)
 {
 	source_ = source;
 }
-void Halfedge::SetTarget(Vertex* target)
+void Halfedge::setTarget(Vertex* target)
 {
 	target_ = target;
 }
-void Halfedge::SetNext(Halfedge* next)
+void Halfedge::setNext(Halfedge* next)
 {
 	next_ = next;
 }
-void Halfedge::SetPrev(Halfedge* prev)
+void Halfedge::setPrev(Halfedge* prev)
 {
 	prev_ = prev;
 }
-void Halfedge::SetCell(Cell* cell)
+void Halfedge::setCell(Cell* cell)
 {
 	cell_ = cell;
 }
 
-void Halfedge::RemoveCell()
+void Halfedge::removeCell()
 {
 	cell_ = nullptr;
 }
 
-void Halfedge::TwinDestroy()
+void Halfedge::twinDestroy()
 {
-	twin_->target()->RemoveIncidentEdge(twin_);
-	T_->DeleteHalfedge(twin_);
+	twin_->target()->removeIncidentEdge(twin_);
+	T_->deleteHalfedge(twin_);
 }
-void Halfedge::SelfDestroy()
+void Halfedge::selfDestroy()
 {
-	TwinDestroy();
-	target_->RemoveIncidentEdge(this);
-	T_->DeleteHalfedge(this);
+	twinDestroy();
+	target_->removeIncidentEdge(this);
+	T_->deleteHalfedge(this);
 }
-void Halfedge::T1Transition()
+void Halfedge::t1Transition()
 {
-	CalcLength();
+	calcLength();
 	if (length_ > parameter::l_min) return;
 
 	Cell* c_1 = cell_;
@@ -88,53 +88,53 @@ void Halfedge::T1Transition()
 	// update vertex positions
 	double dx_a = - ( v_b->x() - v_a->x() - (parameter::l_new/length_)*(v_b->y() - v_a->y()) ) / 2;
 	double dy_a = - ( v_b->y() - v_a->y() + (parameter::l_new/length_)*(v_b->x() - v_a->x()) ) / 2;
-	v_a->Translate(dx_a, dy_a);
-	v_b->Translate(-dx_a, -dy_a);
+	v_a->translate(dx_a, dy_a);
+	v_b->translate(-dx_a, -dy_a);
 
 	// update v_1 topology
-	v_a->RemoveIncidentEdge(twin_->prev());
-	v_a->AddIncidentEdge(prev_);
+	v_a->removeIncidentEdge(twin_->prev());
+	v_a->addIncidentEdge(prev_);
 	// update v_2 topology
-	v_b->RemoveIncidentEdge(prev_);
-	v_b->AddIncidentEdge(twin_->prev());
+	v_b->removeIncidentEdge(prev_);
+	v_b->addIncidentEdge(twin_->prev());
 
 	// ensure cell roots are not edges in the transition
-	c_1->ChangeRoot(next_);
-	c_2->ChangeRoot(twin_->next());
+	c_1->changeRoot(next_);
+	c_2->changeRoot(twin_->next());
 
 	// update c_1 halfedges
-	prev_->SetNext(next_);
-	prev_->SetTarget(v_a);
-	next_->SetPrev(prev_);
+	prev_->setNext(next_);
+	prev_->setTarget(v_a);
+	next_->setPrev(prev_);
 	// update c_2 halfedges
-	twin_->prev()->SetNext(twin_->next());
-	twin_->prev()->SetTarget(v_b);
-	twin_->next()->SetPrev(twin_->prev());
+	twin_->prev()->setNext(twin_->next());
+	twin_->prev()->setTarget(v_b);
+	twin_->next()->setPrev(twin_->prev());
 	// update c_a halfedges
-	he_a_1->SetNext(twin_);
-	he_a_2->SetPrev(twin_);
-	he_a_2->SetSource(v_b);
+	he_a_1->setNext(twin_);
+	he_a_2->setPrev(twin_);
+	he_a_2->setSource(v_b);
 	// update c_b halfedges
-	he_b_1->SetNext(this);
-	he_b_2->SetPrev(this);
-	he_b_2->SetSource(v_a);
+	he_b_1->setNext(this);
+	he_b_2->setPrev(this);
+	he_b_2->setSource(v_a);
 
 	// update twin halfedge
-	twin_->SetNext(he_a_2);
-	twin_->SetPrev(he_a_1);
-	twin_->SetCell(c_a);
+	twin_->setNext(he_a_2);
+	twin_->setPrev(he_a_1);
+	twin_->setCell(c_a);
 	//update this halfedge
-	SetNext(he_b_2);
-	SetPrev(he_b_1);
-	SetCell(c_b);
+	setNext(he_b_2);
+	setPrev(he_b_1);
+	setCell(c_b);
 
-	c_1->FindVerticesAndEdges();
-	c_2->FindVerticesAndEdges();
-	c_a->FindVerticesAndEdges();
-	c_b->FindVerticesAndEdges();
+	c_1->findVerticesAndEdges();
+	c_2->findVerticesAndEdges();
+	c_a->findVerticesAndEdges();
+	c_b->findVerticesAndEdges();
 }
 
-void Halfedge::CalcLength()
+void Halfedge::calcLength()
 {
 	double x1 = source_->x();
 	double y1 = source_->y();
@@ -143,7 +143,7 @@ void Halfedge::CalcLength()
 
 	length_ = d(x1,y1, x2,y2);
 }
-void Halfedge::CalcLineTension()
+void Halfedge::calcLineTension()
 {
 	if (cell_ && twin_->cell()) line_tension_ = parameter::Lambda + parameter::Gamma*(cell_->perimeter() + twin_->cell()->perimeter());
 }

@@ -27,13 +27,13 @@ public:
 
 	Vertex(Tissue* T, int id, double x, double y);
 
-	void AddIncidentEdge(Halfedge* edge);
-	void RemoveIncidentEdge(Halfedge* edge);
-	void SelfDestroy();
+	void addIncidentEdge(Halfedge* edge);
+	void removeIncidentEdge(Halfedge* edge);
+	void selfDestroy();
 
-	void Translate(double dx, double dy);
-	void UpdateForce();
-    void ApplyForce();
+	void translate(double dx, double dy);
+	void updateForce();
+    void applyForce();
 
 	int id() const;
 	double x() const; double y() const;
@@ -64,19 +64,19 @@ public:
 
 	Halfedge(Tissue* T, int id);
 
-	void SetPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell);
-	void SetSource(Vertex* source);
-	void SetTarget(Vertex* target);
-	void SetNext(Halfedge* next);
-	void SetPrev(Halfedge* prev);
-	void SetCell(Cell* cell);
-	void RemoveCell();
-	void TwinDestroy();
-	void SelfDestroy();
-	void T1Transition();
+	void setPointers(Vertex* source, Vertex* target, Halfedge* twin, Halfedge* next, Halfedge* prev, Cell* cell);
+	void setSource(Vertex* source);
+	void setTarget(Vertex* target);
+	void setNext(Halfedge* next);
+	void setPrev(Halfedge* prev);
+	void setCell(Cell* cell);
+	void removeCell();
+	void twinDestroy();
+	void selfDestroy();
+	void t1Transition();
 
-	void CalcLength();
-	void CalcLineTension();
+	void calcLength();
+	void calcLineTension();
 
 	int id() const;
 	double length() const;
@@ -122,19 +122,19 @@ public:
 
 	Cell(Tissue* T, int id, Halfedge* root);
 
-	void SelfDestroy();
-	void ChangeRoot(Halfedge* root);
+	void selfDestroy();
+	void changeRoot(Halfedge* root);
 
-	void FindVerticesAndEdges();
-	void BoundaryCheck();
+	void findVerticesAndEdges();
+	void boundaryCheck();
 	
-	void CalcArea();
-	void CalcCentroid();
-	void CalcPerimeter();
-	void CalcSurfaceTension();
+	void calcArea();
+	void calcCentroid();
+	void calcPerimeter();
+	void calcSurfaceTension();
 
-	void CalcGyration();
-	void CalcWinding();
+	void calcGyration();
+	void calcWinding();
 
 	int id() const;	
 	int n_edges() const;
@@ -156,7 +156,7 @@ public:
 	double X() const;
 	double Z() const;
 	
-	void Output();
+	void output();
 
 };
 

@@ -5,7 +5,7 @@
 #include <chrono>
 
 // some initial cell layouts
-std::vector<Point> RandomPoints(int n) 
+std::vector<Point> randomPoints(int n) 
 { 
 	double A_0 = 1.0;
 	std::vector<Point> points;
@@ -27,13 +27,13 @@ int main()
 
 	// initial condition
 	std::cout << "CREATING VORONOI DIAGRAM\n";
-	std::vector<Point> points = RandomPoints(n_initial_sites);
+	std::vector<Point> points = randomPoints(n_initial_sites);
 	Diagram diagram = Diagram(points);
-	diagram.CreateVoronoiDiagram();
+	diagram.createVoronoiDiagram();
 
 	std::cout << "INITIALISING TISSUE\n";
 	auto init_start = std::chrono::high_resolution_clock::now();
-	Tissue T(diagram.VoronoiDiagram(), circle);
+	Tissue T(diagram.voronoi_diagram(), circle);
 	auto init_end = std::chrono::high_resolution_clock::now();
 	auto init_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(init_end - init_start);
 	std::cout << "INITIALISED IN " << init_duration_ms.count() << " ms\n";
@@ -42,7 +42,7 @@ int main()
 	Simulation simulation(&T);
 	std::cout << "RUNNING SIMULATION\n";
     auto sim_start = std::chrono::high_resolution_clock::now();
-	simulation.Run(n_timesteps, output_interval);
+	simulation.run(n_timesteps, output_interval);
 	auto sim_end = std::chrono::high_resolution_clock::now();
     auto sim_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(sim_end - sim_start);
 	std::cout << "SIMULATION RAN IN " << sim_duration_ms.count() << " ms\n";

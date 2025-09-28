@@ -12,7 +12,7 @@ private:
 public:
 
     Simulation(Tissue* T);
-    void Run(int n_timesteps, int output_interval);
+    void run(int n_timesteps, int output_interval);
 
 };
 
